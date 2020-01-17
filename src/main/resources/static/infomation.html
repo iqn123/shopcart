@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>手机详情</title>
+    <script src="https://cdn.staticfile.org/vue/2.2.2/vue.min.js"></script>
+    <script src="https://cdn.staticfile.org/axios/0.18.0/axios.min.js"></script>
+</head>
+<body>
+<div id="app">
+    <img alt="商品图片" :src="phone.img" width="300px;" height="200px;"><br>
+    <label>{{phone.pname}}</label>
+    <label><font color="red">￥:{{phone.price}}</font></label><br>
+    <label>{{phone.desc}}</label><br>
+    <label>库存:{{phone.count}}</label><br>
+
+    <br>
+
+    数量:<input type="text" v-model="num"><br>
+    &lt;!&ndash; 展示商品类型 &ndash;&gt;
+    <br>
+    <div v-for="(type,index) in phone.types" style="float: left;">
+        <button @click="changeType(type)">{{type}}</button><br>
+
+    </div>
+
+    <button @click="addProductById(phone.pId)">添加到购物车</button>
+    <button @click="myCart">我的购物车</button>
+</div>
+
+<script type="text/javascript">
+    var pid = window.location.href.split("=")[1];
+    var app=new Vue({
+        el:"#app",
+        data:{
+            phone : null,
+            phoneType : null,
+            num : 1
+        },
+        mounted(){
+            axios
+                .get("/phones/phone/"+pid)
+                .then(response=>(this.phone=response.data));
+        },
+        methods:{
+            changeType:function(type){
+                console.log(type);
+                this.phoneType=type
+            },
+            addProductById:function(pid){
+                //alert(pid+","+this.productType+","+this.num);
+                alert(pid);
+                var param=new URLSearchParams();
+                param.append("pid",pid);
+                param.append("num",this.num);
+                param.append("type",this.phoneType);
+                axios
+                    .post("/cart/add",param)
+                    .then(response=>{
+                    alert(response.data);
+            });
+            },
+            myCart:function () {
+                window.location.href="cart.html";
+            }
+        }
+    });
+
+</script>
+
+
+
+</body>
+</html>

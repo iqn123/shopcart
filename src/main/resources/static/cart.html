@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script type="text/javascript" src=""></script>
+<script src="https://cdn.staticfile.org/vue/2.2.2/vue.min.js"></script>
+<script src="https://cdn.staticfile.org/axios/0.18.0/axios.min.js"></script>
+</head>
+<body>
+	<div id="app">
+		<table>
+			<tr v-for="product in products">
+				<td>
+					<img alt="商品图片" :src="product.image" width="100px;" height="60px;">
+					<label>{{product.pName}}</label>
+					<label><font color="red">{{product.type}}</font></label>
+					<label>{{product.price}}</label>
+					<button @click="descNum(product)">-</button>
+					<input type="text" :value="product.num">
+					<button>+</button>
+					
+					<button @click="delProduct(product)">删除</button>
+					<button>购买</button>
+				</td>
+			</tr>
+		</table>
+	</div>
+	<script type="text/javascript">
+		var app = new Vue({
+			el:"#app",
+			data:{
+				products: []
+			},
+			mounted(){
+				//请求购物车数据
+				axios
+					.get("/cart")
+					.then(res=>(this.products=res.data));
+			},
+			methods:{
+				descNum:function(product){
+					if (product.num<=1) {
+						//不能再减
+						return;
+					}
+					
+					//发请求让后台减少数量
+					//
+					var params = new URLSearchParams();
+					params.append("pid",product.pid);
+					params.append("type",product.type);
+					params.append("num",product.num-1);
+					axios
+						.put("cart/update",params)
+						.then(res=>{
+							if (res.data=="success") {
+								//如果后台删除成功，前台才-1
+								product.num=product.num-1;
+							}
+						})
+				},
+				delProduct:function(product){
+					var params = new URLSearchParams();
+					params.append("pid",product.pid);
+					params.append("type",product.type);
+					axios
+						.delete("/cart",params)
+						.then(res=>{
+							if (res.data=="success") {
+								alert("删除成功!");
+								//删除前台
+								for(var i=0;i<this.products.length;i++){
+									var pro = this.products[i];
+									if (pro.pid==product.pid) {
+										this.products.splice(i,1);
+										break;
+									}
+								}
+							}else {
+								alert("删除失败!");
+							}
+						})
+				}
+			}
+		});
+		
+	</script>
+	
+</body>
+</html>
